@@ -1,0 +1,44 @@
+version: '3'
+
+services: 
+    app:
+        build:
+            context: node
+        container_name: app
+        command: bash -c "npm install && node index.js"
+        restart: always
+        volumes:
+            - ./node:/usr/src/app
+        tty: true
+        networks: 
+            - node-nginx-network
+
+    db:
+        build:
+            context: database
+        command: --innodb-use-native-aio=0
+        container_name: db
+        restart: always
+        tty: true
+        volumes: 
+            - ./database/mysql:/var/lib/mysql
+        environment: 
+            - MYSQL_DATABASE=desafionode
+            - MYSQL_ROOT_PASSWORD=root
+        networks: 
+            - node-nginx-network
+
+    nginx:
+        build:
+            context: nginx
+        container_name: nginx
+        ports:
+            - "8080:80"
+        networks: 
+            - node-nginx-network
+        depends_on: 
+            - app
+
+networks: 
+    node-nginx-network:
+        driver: bridge
